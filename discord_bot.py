@@ -1,6 +1,3 @@
-# pip install discord
-# pip install python-dotenv
-
 import asyncio
 from discord import Intents, Client, TextChannel, Message
 

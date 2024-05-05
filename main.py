@@ -1,6 +1,5 @@
-# Aqui se ejecuta todo lo relacionado al web crawler
-# get_response puede llegar a utilizar la variable
-# last_course y keyword declaradas en main.py
+# pip install discord
+# pip install python-dotenv
 
 import os
 from discord import Client

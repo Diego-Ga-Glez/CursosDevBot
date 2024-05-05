@@ -1,33 +1,47 @@
-# pip install discord
-# pip install python-dotenv
+# Aqui se ejecuta todo lo relacionado al web crawler
+# get_response puede llegar a utilizar la variable
+# last_course y keyword declaradas en main.py
 
 import os
-import asyncio
+from discord import Client
 from dotenv import load_dotenv
-from discord import Intents, Client, TextChannel
+from discord_bot import DiscordBot
 
-# Carga las variables de entorno
-load_dotenv()
-DISCORD_TOKEN: str = os.getenv('DISCORD_TOKEN')
-CHANNEL_ID: int = int(os.getenv('CHANNEL_ID'))
+class WebCrawler(DiscordBot):
+     def __init__(self, channel_id_: int):
 
-# Crea el cliente de Discord
-intents: Intents = Intents.default()
-client: Client = Client(intents=intents)
+          # Hace llamar el constructor de DiscordBot
+          super().__init__(channel_id=channel_id_)
 
-async def send_message() -> None:
-    channel: TextChannel  = client.get_channel(CHANNEL_ID)
-    while True:
-        await channel.send(content="Este es un mensaje periódico del bot.")
-        await asyncio.sleep(10)  # Espera 10 segundos antes de enviar el próximo mensaje
+          self.url: str = 'https://www.cursosdev.com/coupons'
 
-@client.event
-async def on_ready() -> None:
-    print(f'{client.user} is now running')
-    asyncio.create_task(send_message())  # Crea una tarea para enviar mensajes
+     # El metodo debe retornar una lista de diccionarios
+     def get_response(self) -> list:
+          # return [
+          #           {
+          #                'titulo' : 'curso1',
+          #                'descripcion:' : 'Este es el curso 1'
+          #           }, 
+          #           {
+          #                'titulo' : 'curso2',
+          #                'descripcion:' : 'Este es el curso 2'
+          #           }
+          #        ]
 
-def start_bot() -> None:
-    client.run(token=DISCORD_TOKEN)
+          return[]
+     
+     # Metodo opcional (?)
+     def format_response(self, response: dict) -> str:
+          return response['titulo']
+          
 
 if __name__ == '__main__':
-    start_bot()
+
+     # Carga las variables de entorno
+     load_dotenv()
+     TOKEN: str = os.getenv('DISCORD_TOKEN')
+     CHANNEL_ID: int = int(os.getenv('CHANNEL_ID'))
+
+     # Crea el cliente de Discord
+     client: Client = WebCrawler(channel_id_=CHANNEL_ID)
+     client.run(token=TOKEN)

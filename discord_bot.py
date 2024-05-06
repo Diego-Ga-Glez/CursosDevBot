@@ -33,7 +33,7 @@ class DiscordBot(Client):
             await asyncio.sleep(10)  # Espera 10 segundos antes de enviar el próximo mensaje
 
     async def on_message(self, message: Message) -> None:
-        # Verific que el mensaje no sea del bot
+        # Verifica que el mensaje no sea del bot
         if message.author == self.user:
             return
 

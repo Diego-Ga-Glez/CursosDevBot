@@ -1,10 +1,14 @@
 # pip install discord
 # pip install python-dotenv
+# pip install requests
+# pip install beautifulsoup4
 
 import os
+import requests
 from discord import Client
 from dotenv import load_dotenv
 from discord_bot import DiscordBot
+from bs4 import BeautifulSoup
 
 class WebCrawler(DiscordBot):
      def __init__(self, channel_id_: int):
@@ -16,22 +20,34 @@ class WebCrawler(DiscordBot):
 
      # El metodo debe retornar una lista de diccionarios
      def get_response(self) -> list:
-          # return [
-          #           {
-          #                'titulo' : 'curso1',
-          #                'descripcion:' : 'Este es el curso 1'
-          #           }, 
-          #           {
-          #                'titulo' : 'curso2',
-          #                'descripcion:' : 'Este es el curso 2'
-          #           }
-          #        ]
+          # Realiza la solicitud HTTP
+          response = requests.get(self.url)
+          
+          if response.status_code == 200:
+               courses = []
 
-          return[]
+               soup = BeautifulSoup(response.content, 'html.parser')
+               course_elements = soup.find_all('a', class_='c-card')
+               
+               for element in course_elements:
+                    title = element.find('h2').text.strip()
+                    if self.keyword in title:
+                         description = element.find('p').text.strip()
+                         link = element.get('href')
+                         courses.append({
+                              'title': title, 
+                              'description': description,
+                              'link': link
+                              })
+               return courses
+          
+          else:
+               print('La solicitud no fue exitosa')
+               return []
      
      # Metodo opcional (?)
      def format_response(self, response: dict) -> str:
-          return response['titulo']
+          return response['link']
           
 
 if __name__ == '__main__':

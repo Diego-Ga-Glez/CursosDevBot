@@ -25,10 +25,9 @@ class DiscordBot(Client):
     
     async def send_message(self) -> None:
         while True:
-
             response: list = self.get_response()
             for r in response:
-                await self.channel.send(content=self.format_response(r))
+                await self.channel.send(content= f"[{r['title']}]({r['link']})")
 
             await asyncio.sleep(10)  # Espera 10 segundos antes de enviar el próximo mensaje
 
@@ -39,6 +38,7 @@ class DiscordBot(Client):
 
         self.keyword = message.content
         await self.channel.send(content=f'¡Perfecto! A partir de ahora, te enviaré cursos específicos sobre {self.keyword}. Aquí tienes el último en la serie.')
+        self.last_course = None
 
         if self.task is not None:
             self.task.cancel()

@@ -28,26 +28,28 @@ class WebCrawler(DiscordBot):
 
                soup = BeautifulSoup(response.content, 'html.parser')
                course_elements = soup.find_all('a', class_='c-card')
-               
+
                for element in course_elements:
                     title = element.find('h2').text.strip()
-                    if self.keyword in title:
-                         description = element.find('p').text.strip()
+                    if self.keyword.lower() in title.lower():
                          link = element.get('href')
-                         courses.append({
-                              'title': title, 
-                              'description': description,
-                              'link': link
-                              })
+                         if link != self.last_course:
+                              courses.append({
+                                   'title': title,
+                                   'link': link
+                                   })
+                              if self.last_course == None:
+                                   break
+                         else:
+                              break
+               
+               if len(courses) and self.last_course != courses[0]['link']:
+                    self.last_course = courses[0]['link']
                return courses
           
           else:
                print('La solicitud no fue exitosa')
                return []
-     
-     # Metodo opcional (?)
-     def format_response(self, response: dict) -> str:
-          return response['link']
           
 
 if __name__ == '__main__':

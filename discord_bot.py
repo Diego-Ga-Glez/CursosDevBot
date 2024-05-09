@@ -29,7 +29,7 @@ class DiscordBot(Client):
             for r in response:
                 await self.channel.send(content= f"[{r['title']}]({r['link']})")
 
-            await asyncio.sleep(7200)  # Espera 10 segundos antes de enviar el próximo mensaje
+            await asyncio.sleep(7200)  # Espera 2 horas antes de enviar el próximo mensaje
 
     async def on_message(self, message: Message) -> None:
         # Verifica que el mensaje no sea del bot

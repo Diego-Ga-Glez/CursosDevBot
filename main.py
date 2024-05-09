@@ -5,7 +5,7 @@
 
 import os
 import requests
-import time
+import asyncio
 from discord import Client
 from dotenv import load_dotenv
 from discord_bot import DiscordBot
@@ -53,7 +53,7 @@ class WebCrawler(DiscordBot):
                                    break
                     if search:
                          page += 1
-                         time.sleep(1)
+                         asyncio.sleep(1)
                
                else:
                     print('La solicitud a la página ' + str(page) + ' no fue exitosa')

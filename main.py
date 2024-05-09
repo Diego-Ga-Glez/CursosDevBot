@@ -5,6 +5,7 @@
 
 import os
 import requests
+import time
 from discord import Client
 from dotenv import load_dotenv
 from discord_bot import DiscordBot
@@ -20,36 +21,48 @@ class WebCrawler(DiscordBot):
 
      # El metodo debe retornar una lista de diccionarios
      def get_response(self) -> list:
-          # Realiza la solicitud HTTP
-          response = requests.get(self.url)
-          
-          if response.status_code == 200:
-               courses = []
-
-               soup = BeautifulSoup(response.content, 'html.parser')
-               course_elements = soup.find_all('a', class_='c-card')
-
-               for element in course_elements:
-                    title = element.find('h2').text.strip()
-                    if self.keyword.lower() in title.lower():
-                         link = element.get('href')
-                         if link != self.last_course:
-                              courses.append({
-                                   'title': title,
-                                   'link': link
-                                   })
-                              if self.last_course == None:
-                                   break
-                         else:
-                              break
+          search = True
+          courses = []
+          page = 1
+          while search:
+               url = self.url + '?page=' + str(page)
+               # Realiza la solicitud HTTP
+               response = requests.get(url)
                
-               if len(courses) and self.last_course != courses[0]['link']:
-                    self.last_course = courses[0]['link']
-               return courses
+               if response.status_code == 200:
+                    soup = BeautifulSoup(response.content, 'html.parser')
+                    course_elements = soup.find_all('a', class_='c-card')
+
+                    if not course_elements:
+                         break
+
+                    for element in course_elements:
+                         title = element.find('h2').text.strip()
+                         if self.keyword.lower() in title.lower():
+                              link = element.get('href')
+                              if link != self.last_course:
+                                   courses.append({
+                                        'title': title,
+                                        'link': link
+                                   })
+                                   if self.last_course == None:
+                                        search = False
+                                        break
+                              else:
+                                   search = False
+                                   break
+                    if search:
+                         page += 1
+                         time.sleep(1)
+               
+               else:
+                    print('La solicitud a la página ' + str(page) + ' no fue exitosa')
+                    break
           
-          else:
-               print('La solicitud no fue exitosa')
-               return []
+          if len(courses) and self.last_course != courses[0]['link']:
+               self.last_course = courses[0]['link']
+
+          return courses
           
 
 if __name__ == '__main__':

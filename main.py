@@ -1,5 +1,4 @@
 # pip install discord
-# pip install python-dotenv
 # pip install requests
 # pip install beautifulsoup4
 
@@ -7,7 +6,6 @@ import os
 import requests
 import asyncio
 from discord import Client
-from dotenv import load_dotenv
 from discord_bot import DiscordBot
 from bs4 import BeautifulSoup
 
@@ -68,7 +66,6 @@ class WebCrawler(DiscordBot):
 if __name__ == '__main__':
 
      # Carga las variables de entorno
-     load_dotenv()
      TOKEN: str = os.getenv('DISCORD_TOKEN')
      CHANNEL_ID: int = int(os.getenv('CHANNEL_ID'))
 

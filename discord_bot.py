@@ -31,18 +31,20 @@ class DiscordBot(Client):
         self.channel_obt = self.get_channel(self.id_ch_obt)
 
         print(f'Conectado como {self.user}')
-        print(f'El bot respondera en {self.channel_seg.name} y en {self.channel_obt.name}')
+        print(f'El bot responderá en {self.channel_seg.name} y en {self.channel_obt.name}')
 
     async def send_message(self, run_seg_coroutine: bool) -> None:
         try:
-
             channel = "seg-de-cursos" if run_seg_coroutine else "obt-de-cursos"
             keyword = self.keyword_seg  if run_seg_coroutine else self.keyword_obt
             msg = f'La corutina en {channel} con la palabra clave {keyword}'
 
             while True:
                 response: list = await self.get_response(run_seg_coroutine)
-                if(run_seg_coroutine): print(f'{msg} obtuvo {len(response)} resultados.')
+                print(f'{msg} obtuvo {len(response)} resultados.')
+
+                if not len(response) and not run_seg_coroutine: 
+                    await self.channel_obt.send(content= f"No se encontraron cursos.")
 
                 for r in response:
                     if(run_seg_coroutine):
@@ -53,7 +55,7 @@ class DiscordBot(Client):
                 if(not run_seg_coroutine): break
                 await asyncio.sleep(60*60*2)  # Espera 2 horas antes de enviar el próximo mensaje
 
-            print(f'{msg} finalizo con exito')
+            print(f'{msg} finalizó con exito.')
 
         except asyncio.CancelledError:
             print(f'{msg} fue terminada.') 
@@ -75,7 +77,7 @@ class DiscordBot(Client):
         if(message.channel == self.channel_obt):
             self.keyword_obt = message.content
             await self.channel_obt.send(content=f'¡Perfecto! A continuación se te enviará una lista de cursos que coinciden con la palabra {self.keyword_obt}.')
-            await self.channel_obt.send(content=f'Esta acción  podría llevar un poco de tiempo.')
+            await self.channel_obt.send(content=f'Obteniendo cursos...')
 
             if(type(self.task_obt) == asyncio.Task): self.task_obt.cancel()
             self.task_obt = asyncio.create_task(self.send_message(run_seg_coroutine=False))

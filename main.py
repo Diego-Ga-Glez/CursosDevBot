@@ -12,21 +12,21 @@ from discord_bot import DiscordBot
 from bs4 import BeautifulSoup
 
 class WebCrawler(DiscordBot):
-     def __init__(self, channel_id_: int):
-
+     def __init__(self):
           # Hace llamar el constructor de DiscordBot
-          super().__init__(channel_id=channel_id_)
+          super().__init__()
 
-          self.url: str = 'https://www.cursosdev.com/coupons'
-
-     # El metodo debe retornar una lista de diccionarios
-     def get_response(self) -> list:
+     async def get_response(self, run_seg_coroutine: bool) -> list:
+          
+          keyword = self.keyword_seg  if run_seg_coroutine else self.keyword_obt
           search = True
           courses = []
           page = 1
+
           while search:
-               url = self.url + '?page=' + str(page)
-               # Realiza la solicitud HTTP
+
+                # Realiza la solicitud HTTP
+               url = f'https://www.cursosdev.com/coupons?page={page}'
                response = requests.get(url)
                
                if response.status_code != 200:
@@ -34,43 +34,35 @@ class WebCrawler(DiscordBot):
                     break
 
                soup = BeautifulSoup(response.content, 'html.parser')
+               divs_courses = soup.find_all('div', class_='w-screen')
+               div_free_courses = divs_courses[1]
 
-               divs_courses = soup.find_all('div', class_='w-screen') #
-               if len(divs_courses) >= 2:
-                    div_free_courses = divs_courses[1]
-               else:
-                    break #
-
-               expired_courses = div_free_courses.find_all('span', string='Expired') #
-               if len(expired_courses) == 20:
-                    break #
-
-               course_elements = div_free_courses.find_all('a', class_='c-card') #
-               if not course_elements:
-                    break
+               course_elements = div_free_courses.find_all('a', class_='c-card')
+               expired_courses = div_free_courses.find_all('span', string='Expired')
+               if not course_elements or len(expired_courses) == 20:
+                    break 
 
                for element in course_elements:
-                    expired = element.find('span', string='Expired') #
+                    expired = element.find('span', string='Expired')
                     title = element.find('h2').text.strip()
-                    if not expired and self.keyword.lower() in title.lower(): #
-                         link = element.get('href')
-                         if link != self.last_course:
-                              courses.append({
-                                   'title': title,
-                                   'link': link
-                              })
-                              if self.last_course == None:
-                                   search = False
-                                   break
-                         else:
+                    link = element.get('href')
+                    
+                    if not expired and keyword.lower() in title.lower():
+                         courses.append({
+                              'title': title,
+                              'link': link
+                         })
+                         
+                         if self.last_course in [None, link] and run_seg_coroutine:
+                              if self.last_course == link: courses.pop()
                               search = False
                               break
                
                if search:
                     page += 1
-                    asyncio.sleep(1)
+                    await asyncio.sleep(1)
                
-          if len(courses):
+          if len(courses) and run_seg_coroutine:
                self.last_course = courses[0]['link']
 
           return courses
@@ -78,11 +70,10 @@ class WebCrawler(DiscordBot):
 
 if __name__ == '__main__':
 
-     # Carga las variables de entorno
-     load_dotenv()
-     TOKEN: str = os.getenv('DISCORD_TOKEN')
-     CHANNEL_ID: int = int(os.getenv('CHANNEL_ID'))
-
+     # Carga las variables de entorno y
      # Crea el cliente de Discord
-     client: Client = WebCrawler(channel_id_=CHANNEL_ID)
-     client.run(token=TOKEN)
+     load_dotenv()
+     client: Client = WebCrawler()
+     client.start_bot( token= os.getenv('TOKEN'), 
+                       id_ch_seg = int(os.getenv('ID_CH_SEG')), 
+                       id_ch_obt = int(os.getenv('ID_CH_OBT')))
